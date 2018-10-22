@@ -10,15 +10,37 @@ $app = new \Slim\App([
     //Passing some configuration options to Slim
     'settings' => [
         'displayErrorDetails' => true,
+        'db' => [
+            'driver' => 'mysql',
+            'host' => '138.201.64.85',
+            'database' => 'compboar_app',
+            'username' => 'compboar_app',
+            'password' => 'OL(%_%uxX{~r',
+            'charset' => 'utf8',
+            'collation' => 'utf8_unicode_ci',
+            'prefix' => '',
+        ],
     ]
 ]);
 
 //We need attach things to container. So we firstly grab the container
 $container = $app->getContainer();
 
+//Using Eloquent db component we try to connect to our mysql db. 
+//Firs we instantiate DB class and later we call cnnector.
+$capsule = new \Illuminate\Database\Capsule\Manager;
+$capsule->addConnection($container['settings']['db']);
+$capsule->setAsGlobal();
+$capsule->bootEloquent();
+
+//Adding db to container in order to access it from controllers
+$container['db'] = function ($container) use ($capsule) {
+    return $capsule;
+};
+
 //Starting to bind everything with container
 //First the view
-$container['view'] = function($container) { //when we would use view it will resolve from container
+$container['view'] = function ($container) { //when we would use view it will resolve from container
 
     //Creating new Twig View Instance, then specify the folder and give options
    $view = new \Slim\Views\Twig(__DIR__ . '/../res/views', [
@@ -40,6 +62,10 @@ $container['view'] = function($container) { //when we would use view it will res
 //Starting bind Controller to router. When router calls base url (/) system will instantate HomeController.
 $container['HomeController'] = function ($container) {
     return new \Esened\Controllers\HomeController($container);
+}; 
+
+$container['AuthController'] = function ($container) {
+    return new \Esened\Controllers\Auth\AuthController($container);
 }; 
 
 // require the routing file
