@@ -57,7 +57,12 @@ $container['view'] = function ($container) { //when we would use view it will re
    ));
 
    return $view;
-}; 
+};
+
+//Attach validator to our container
+$container['validator'] = function ($container) {
+    return new \Esened\Validation\Validator;
+};
 
 //Starting bind Controller to router. When router calls base url (/) system will instantate HomeController.
 $container['HomeController'] = function ($container) {
