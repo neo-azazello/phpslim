@@ -26,6 +26,9 @@ class Validator {
             }
         }
         
+        //Here we attach all our errors to session in order to use it in middleware 
+        $_SESSION['errors'] = $this->errors;
+
         return $this;
     }
 

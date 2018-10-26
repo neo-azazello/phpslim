@@ -73,6 +73,12 @@ $container['AuthController'] = function ($container) {
     return new \Esened\Controllers\Auth\AuthController($container);
 }; 
 
+//Attaching Validation Middleware to our container
+$app->add(new \Esened\Middleware\ValidationErrorsMiddleware($container));
+
+//Attach Middleware that checks input data persistance
+$app->add(new \Esened\Middleware\OldInputMiddleware($container));
+
 // require the routing file
 require __DIR__ . "/../app/routes.php";
 
