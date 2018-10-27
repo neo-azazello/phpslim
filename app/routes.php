@@ -1,14 +1,30 @@
 <?php
 
-//Creating basic route
-/* $app->get('/',  function ($request, $response){
-    return $this->view->render($response, 'home.twig');
-}); */
+use Esened\Middleware\AuthMiddleware;
+use Esened\Middleware\GuestMiddleware;
+
 
 //Despite container has already instantiated Home Controller here in router we may access the methode :index
 $app->get('/', 'HomeController:index')->setName('home');
 
-//We are setting the URL where signup form will appear
-$app->get('/signup', 'AuthController:getSignUp')->setName('auth.signup');
-//This route will receive a data posted from signup form
-$app->post('/signup', 'AuthController:postSignUp');
+$app->group('', function () {
+
+    //We are setting the URL where signup form will appear
+    $this->get('/signup', 'AuthController:getSignUp')->setName('auth.signup');
+    //This route will receive a data posted from signup form
+    $this->post('/signup', 'AuthController:postSignUp');
+
+    $this->get('/signin', 'AuthController:getSignIn')->setName('auth.signin');
+    $this->post('/signin', 'AuthController:postSignIn');
+
+})->add(new GuestMiddleware($container));
+
+
+$app->group('', function () {
+
+    $this->get('/signout', 'AuthController:getSignOut')->setName('auth.signout');
+
+    $this->get('/passchange', 'PasswordController:getChangePassword')->setName('password.change');
+    $this->post('/passchange', 'PasswordController:postChangePassword');
+
+})->add(new AuthMiddleware($container));

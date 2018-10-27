@@ -1,4 +1,7 @@
 <?php
+
+use Respect\Validation\Validator as v;
+
 //Starting new session in aour application
 session_start();
 
@@ -38,6 +41,15 @@ $container['db'] = function ($container) use ($capsule) {
     return $capsule;
 };
 
+$container['auth'] = function ($container) {
+    return new \Esened\Auth\Auth;
+};
+
+//Adding to container flash messages
+$container['flash'] = function ($container) {
+    return new \Slim\Flash\Messages;
+};
+
 //Starting to bind everything with container
 //First the view
 $container['view'] = function ($container) { //when we would use view it will resolve from container
@@ -56,6 +68,16 @@ $container['view'] = function ($container) { //when we would use view it will re
        $container->request->geturi()
    ));
 
+   //Make available Auth class inside of our templates
+   $view->getEnvironment()->addGlobal('auth', [
+       //Here we are essentaily doing is we are calling the database once but store it inside of our view variables
+        'check' => $container->auth->check(),
+        'user' => $container->auth->user(),
+   ]);
+
+   //Giving availibiity of flash functionality to our twig views
+   $view->getEnvironment()->addGlobal('flash', $container->flash);
+
    return $view;
 };
 
@@ -73,11 +95,31 @@ $container['AuthController'] = function ($container) {
     return new \Esened\Controllers\Auth\AuthController($container);
 }; 
 
+$container['PasswordController'] = function ($container) {
+    return new \Esened\Controllers\Auth\PasswordController($container);
+}; 
+
+
+//Attaching  CSRF module to our system container.
+$container['csrf'] = function ($container) {
+    return new \Slim\Csrf\Guard;
+};
+
+
 //Attaching Validation Middleware to our container
 $app->add(new \Esened\Middleware\ValidationErrorsMiddleware($container));
 
 //Attach Middleware that checks input data persistance
 $app->add(new \Esened\Middleware\OldInputMiddleware($container));
+
+//Attach Middleware that checks forms via CSRF
+$app->add(new \Esened\Middleware\CsrfViewMiddleware($container));
+
+//Turning on the csrf system wide
+$app->add($container->csrf);
+
+//Allowing this validation library to use our rules 
+v::with('Esened\\Validation\\Rules\\');
 
 // require the routing file
 require __DIR__ . "/../app/routes.php";

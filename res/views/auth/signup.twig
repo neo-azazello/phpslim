@@ -40,6 +40,10 @@
 
 
              <button type="submit" class="btn btn-success"> Submit</button>
+            
+            <!-- After installation of Middleware we can use it in our template -->
+               {{ csrf.field | raw }}
+
           </form>
         
         </div>
